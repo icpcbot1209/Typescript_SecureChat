@@ -30,10 +30,8 @@ export class CryptoService {
   }
 
   decrypt(cypherText, prikey) {
-    console.log('decrypt()');
     this.crypt.setPrivateKey(prikey);
     let text = this.crypt.decrypt(cypherText);
-    console.log(cypherText, '=================', text);
 
     if (Object.is(text, null)) {
       console.log('Decrypt failed');

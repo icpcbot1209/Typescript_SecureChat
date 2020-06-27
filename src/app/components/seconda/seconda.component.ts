@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-seconda',
@@ -7,6 +7,7 @@ import { Component, OnInit, Input, Output } from '@angular/core';
 })
 export class SecondaComponent implements OnInit {
   @Input() strSecondA;
+  @Output() initApp: EventEmitter<any> = new EventEmitter();
 
   constructor() { }
 
@@ -21,7 +22,9 @@ export class SecondaComponent implements OnInit {
     // document.execCommand("copy");
     // alert("Copied the text: " + copyText.value);
     await navigator.clipboard.writeText(this.strSecondA);
-    alert('copied');
   }
 
+  onClickRetry() {
+    this.initApp.emit();
+  }
 }
