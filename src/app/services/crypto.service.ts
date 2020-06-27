@@ -15,24 +15,36 @@ export class CryptoService {
     this.crypt.getKey();
     let prikey = this.crypt.getPrivateKey();
     let pubkey = this.crypt.getPublicKey();
+
     return { prikey, pubkey };
   }
 
-  // encrypt() {
-  //   const text = `${this.plainText}`.trim();
+  encrypt(text, pubkey) {
+    if (text.length > 117) {
+      text = text.substr(0, 117);
+    }
 
-  //   // 1024 位的密钥支持明文长度最大为 127
-  //   if (text.length > 117) {
-  //     this._message.error('加密内容过长，请重新输入');
-  //   } else {
-  //     this.$encrypt.setPublicKey(publicKey);
-  //     this.cypherText = this.$encrypt.encrypt(text);
-  //   }
-  // }
+    this.crypt.setPublicKey(pubkey);
+    let cypherText = this.crypt.encrypt(text);
+    return cypherText;
+  }
+
+  decrypt(cypherText, prikey) {
+    console.log('decrypt()');
+    this.crypt.setPrivateKey(prikey);
+    let text = this.crypt.decrypt(cypherText);
+    console.log(cypherText, '=================', text);
+
+    if (Object.is(text, null)) {
+      console.log('Decrypt failed');
+      return null;
+    }
+    return text;
+  }
 
   // decrypt() {
-  //   this.$encrypt.setPrivateKey(privateKey);
-  //   this.plainText = this.$encrypt.decrypt(this.cypherText);
+  //   this.crypt.setPrivateKey(privateKey);
+  //   this.plainText = this.crypt.decrypt(this.cypherText);
   //   1;
   //   if (Object.is(this.plainText, null)) {
   //     this._message.error('解密失败');

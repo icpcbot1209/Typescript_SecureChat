@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 
 import { MqttModule, IMqttServiceOptions } from 'ngx-mqtt';
 import { FirstComponent } from './components/first/first.component';
+import { SecondaComponent } from './components/seconda/seconda.component';
 
 export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
   hostname: 'test.mosquitto.org',
@@ -16,7 +17,7 @@ export const MQTT_SERVICE_OPTIONS: IMqttServiceOptions = {
 
 
 @NgModule({
-  declarations: [AppComponent, FirstComponent],
+  declarations: [AppComponent, FirstComponent, SecondaComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,

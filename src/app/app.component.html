@@ -1,3 +1,5 @@
 <div style="height: 100%; width:100%;">
   <app-first *ngIf="status===FIRST" (handleCreate)="handleCreate()" (handleJoin)="handleJoin()"></app-first>
+  <app-seconda *ngIf="status===SECOND_A" [strSecondA]="strSecondA"></app-seconda>
+
 </div>
