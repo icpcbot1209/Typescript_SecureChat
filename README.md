@@ -7,6 +7,11 @@
 ## run
 `npm start`<br/>
 
+## development
+`npm run dev`<br/>
+- Use `tsc` for every compile update from ts to js.<br/>
+package.json contains details.
+
 ## Generate Single HTML using Inliner<br/>
 
 <html>
