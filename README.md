@@ -4,6 +4,11 @@
 `npm install`<br/> 
 `npm install -g typescript`<br/>
 
+### trick
+Use this VS Code extension. This compiles ts file into js after each save automatically. Cool! <br/>
+`Sass/Less/Scss/Typescript/Javascript/Jade/Pug Compile Hero Prowscats.eno`
+
+
 ## run
 `npm start`<br/>
 
@@ -26,12 +31,13 @@ package.json contains details.
     app.listen(port, () => {
       console.log(`listening on port ${port}!`);
 
-      new Inliner(`http://localhost:${port}`, function (error, html) {
+      new Inliner(`http://localhost:${port}`, {noImages:true}, function (error, html) {
         // compressed and inlined HTML page
+        let filename = 'single' + Date.now() + ".html";
 
-        fs.appendFile('result.html', html, function (err) {
+        fs.appendFile(filename, html, function (err) {
           if (err) throw err;
-          console.log('Combiled result Saved as result.html!');
+          console.log('Combiled result Saved as single.html!');
         });
       });
 

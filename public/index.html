@@ -3,22 +3,122 @@
 
   <head>
     <meta charset="UTF-8">
-    <title>Minimal Repo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>1</title>
     <link href="css/index.css" type="text/css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/2.3.1/jsencrypt.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.1.0/mqtt.min.js"></script>
+
+    <script src="src/index.js"></script>
   </head>
 
   <body>
-    <main>
-      <header>
-        <h1>
-          Hello, world!
-        </h1>
-      </header>
-    </main>
-  </body>
+    <div class="app-container">
+      <!-- First -->
+      <div id="first-page" class="centering">
+        <h1 class="animate">SECURE CHAT</h1>
 
-  <footer>
-    <script src="src/index.js"></script>
-  </footer>
+        <button class="animate" onclick="handleCreate();">
+          CREATE
+        </button>
+
+        <button class="animate" onClick={handleJoin}>
+          JOIN
+        </button>
+            
+      </div>
+      
+      <!-- Create -->
+      <div id="create-modal" class="modal">
+      
+        <div class="modal-content animate">
+          <div class="imgcontainer">
+            <span onclick="hideIt('create-modal'); initAppData();" class="close"
+              title="Close Modal">&times;</span>
+          </div>
+
+          <div class="container centering">
+            <div id="strCreate" class="dont-break-out">
+            </div>
+
+            <strong>Please wait until your friend comes in.</strong>
+            <button onclick="handleCopy()"> Copy </button>
+          </div>
+
+        </div>
+      </div>
+      
+      
+      <!-- Join -->
+      <div id="join" class="centering">
+        <Zoom in={true} style="transitionDelay:0ms">
+          <Card>
+            <CardContent style="position:relative">
+              <Iconbutton style="position:absolute; top: 0; right: 0" onClick={handleClose}>
+                <CancelIcon></CancelIcon>
+              </Iconbutton>
+      
+              <div class="centering">
+                <textarea class="dont-break-out" style="margin:20px" cols="30" rows="15"
+                  placeholder="Paste in the invite code from your friend." onChange={(event)=> {
+                            setStrCreate(event.target.value);
+                         "
+                        />
+          
+                        <button
+                          variant="contained"
+                          color="primary"
+                          size="large"
+                          style="width:200px; margin:20px"
+                          onClick={(event) => handleJoinConfirm(strCreate)}
+                        >
+                          Join
+                        </button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Zoom>
+              </div>
+      
+      
+          <!-- Chat -->
+          <div id="chat" class="centering">
+            <Zoom in={true} style="transitionDelay:0ms">
+              <Card>
+                <CardContent style="position:relative">
+                  <Iconbutton style="position:absolute; top: 0; right: 0" onClick={handleClose}>
+                    <CancelIcon></CancelIcon>
+                  </Iconbutton>
+                  <div class="centering">
+                    <div style="
+                            width:400px;
+                            maxWidth:80%;
+                            height:500px;
+                            maxHeight:60%;
+                            border:8px double grey;
+                            overflow:'auto'
+                         ">
+                      {arrChat.map((chat; i) => (
+                      <div key={i}>
+                        <strong>{chat.sender}: </strong>
+                        <span>{chat.plain}</span>
+                      </div>
+                      ))}
+                    </div>
+          
+                    <div style="width:400px; maxWidth:80%; display:flex; marginTop:'30px;">
+                      <input style="flex: 1" ref={refInput} onKeyDown={(event)=> { if (event.keyCode === 13) send();"/>
+                      <Iconbutton type="submit" color="primary">
+                        <SendIcon onClick={(event)=>send()}></SendIcon>
+                      </Iconbutton>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Zoom>
+          </div>
+
+    </div>
+  </body>
 
 </html>

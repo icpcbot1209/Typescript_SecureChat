@@ -1,12 +1,12 @@
 {
-  "name": "test-inliner",
+  "name": "secure-chat",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "nodemone server.js",
+    "dev": "nodemon server.js",
     "tsc": "tsc public/index.ts"
   },
   "author": "",
@@ -14,7 +14,9 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "inliner": "^1.13.1"
+    "inliner": "^1.13.1",
+    "jsencrypt": "^3.0.0-rc.1",
+    "mqtt": "^4.1.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.4"
