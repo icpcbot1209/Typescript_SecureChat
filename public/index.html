@@ -22,7 +22,7 @@
           CREATE
         </button>
 
-        <button class="animate" onClick={handleJoin}>
+        <button class="animate" onclick="handleJoin()">
           JOIN
         </button>
             
@@ -50,36 +50,24 @@
       
       
       <!-- Join -->
-      <div id="join" class="centering">
-        <Zoom in={true} style="transitionDelay:0ms">
-          <Card>
-            <CardContent style="position:relative">
-              <Iconbutton style="position:absolute; top: 0; right: 0" onClick={handleClose}>
-                <CancelIcon></CancelIcon>
-              </Iconbutton>
+      <div id="join-modal" class="modal">
       
-              <div class="centering">
-                <textarea class="dont-break-out" style="margin:20px" cols="30" rows="15"
-                  placeholder="Paste in the invite code from your friend." onChange={(event)=> {
-                            setStrCreate(event.target.value);
-                         "
-                        />
-          
-                        <button
-                          variant="contained"
-                          color="primary"
-                          size="large"
-                          style="width:200px; margin:20px"
-                          onClick={(event) => handleJoinConfirm(strCreate)}
-                        >
-                          Join
-                        </button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Zoom>
-              </div>
+        <div class="modal-content animate">
+          <div class="imgcontainer">
+            <span onclick="hideIt('join-modal'); initAppData();" class="close" title="Close Modal">&times;</span>
+          </div>
       
+          <div class="container centering">
+            <textarea id="paste-panel" style="margin:20px" cols="30" rows="15"
+              placeholder="Paste in the invite code from your friend."></textarea>
+
+            <button onclick="handleJoinConfirm()"> JOIN </button>
+          </div>
+      
+        </div>
+      </div>
+      
+    
       
           <!-- Chat -->
           <div id="chat" class="centering">

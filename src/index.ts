@@ -66,15 +66,21 @@ const hideIt = (id: string) => {
 };
 
 const handleCopy = () => {
-  console.log(data.strCreate);
   navigator.clipboard.writeText(data.strCreate);
 };
 
 const handleJoin = () => {
   appStatus = STATUS_JOIN;
+  showIt("join-modal");
 };
 
-const handleJoinConfirm = (strCreate:string) => {
+const handleJoinConfirm = () => {
+  let strCreate: string = document.getElementById("paste-panel")!.value;
+  strCreate = strCreate.trim();
+  if (strCreate === "") return;
+
+  data.strCreate = strCreate;
+
   let json = JSON.parse(strCreate);
   let pair = cryptoService.generateKeyPair();
 

@@ -54,13 +54,18 @@ var hideIt = function (id) {
     element.style.display = "none";
 };
 var handleCopy = function () {
-    console.log(data.strCreate);
     navigator.clipboard.writeText(data.strCreate);
 };
 var handleJoin = function () {
     appStatus = STATUS_JOIN;
+    showIt("join-modal");
 };
-var handleJoinConfirm = function (strCreate) {
+var handleJoinConfirm = function () {
+    var strCreate = document.getElementById("paste-panel").value;
+    strCreate = strCreate.trim();
+    if (strCreate === "")
+        return;
+    data.strCreate = strCreate;
     var json = JSON.parse(strCreate);
     var pair = cryptoService.generateKeyPair();
     data.sender = "B";
