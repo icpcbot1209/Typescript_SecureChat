@@ -5,7 +5,7 @@ let options = {
   // choose any string you wish
   // clientId: "b0908853",
 };
-let client = mqtt.connect("mqtt://test.mosquitto.org:8081", options);
+let client = mqtt.connect("mqtts://test.mosquitto.org:8081", options);
 
 export function generateRoomId() {
   let roomId = "" + Math.round((Math.random() + 1) * 100000);
