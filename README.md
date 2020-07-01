@@ -1,9 +1,43 @@
-# Secure Chat app using MQTT & Jsencrypt
-[The Live Page is here.](https://react-jsencrypt-mqtt-chat.netlify.app)
-This is the peer to peer serverless chat app using mqtt cloud.
-- React + Material UI
-- jsencrypt to do public key method for secure chat
-- mqtt (mqtts://test.mosquitto.org:port) is used as a light server for chat
+#  Secure chat using Typescript Mqtt Jsencrypt Inliner(single html)
 
-**Screen shot**
-![](/readme/1.gif)
+## install
+`npm install`<br/> 
+`npm install -g typescript`<br/>
+
+## run
+`npm start`<br/>
+
+## Generate Single HTML using Inliner<br/>
+
+<html>
+  <header>
+
+    var Inliner = require('inliner');
+    var fs = require('fs');
+    const express = require('express');
+    const app = express();
+    const port = 3000;
+    app.use(express.static('public'));
+    app.listen(port, () => {
+      console.log(`listening on port ${port}!`);
+
+      new Inliner(`http://localhost:${port}`, function (error, html) {
+        // compressed and inlined HTML page
+
+        fs.appendFile('result.html', html, function (err) {
+          if (err) throw err;
+          console.log('Combiled result Saved as result.html!');
+        });
+      });
+
+    });
+    
+  </header>
+</html>
+
+## issue
+Typescript External Modules are not supported. When they are converted, they should be imported into html as `<script type="module" src="">`.<br/>
+Because of this, it can't be opened using browser directly by clicking file, so please avoid using external module feature of typescript.
+
+
+
