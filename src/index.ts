@@ -1,4 +1,20 @@
 document.addEventListener('DOMContentLoaded', (_event) => {
+  let element = document.getElementById("chat-input");
+  element!.addEventListener('keydown', (event) => { 
+    if (event.keyCode === 13) {
+      let text = element!.value;
+      sendMsg(text);
+      element!.value = "";
+    }
+  });
+
+  let element2 = document.getElementById("chat-send");
+  element2!.addEventListener('click', (event) => { 
+    let text = element!.value;
+    sendMsg(text);
+    element!.value = "";
+  });
+
   initAppData();
 });
 
@@ -21,6 +37,8 @@ var appStatus: number;
 var arrChat = [];
 
 const initAppData = () => {
+  chatService.leaveRoom(data.roomId);
+
   appStatus = STATUS_FIRST;
   arrChat = [];
   data = {
@@ -32,9 +50,7 @@ const initAppData = () => {
     bprikey: "",
     strCreate: "",
   };
-  let a = 1;
 
-  chatService.leaveRoom(data.roomId);
 };
 
 const handleCreate = () => {
@@ -69,6 +85,12 @@ const handleCopy = () => {
   navigator.clipboard.writeText(data.strCreate);
 };
 
+const handleCreateCancel = () => { 
+  hideIt('create-modal');
+  initAppData();
+}
+
+
 const handleJoin = () => {
   appStatus = STATUS_JOIN;
   showIt("join-modal");
@@ -97,6 +119,11 @@ const handleJoinConfirm = () => {
   });
 };
 
+const handleJoinCancel = () => { 
+  hideIt('join-modal');
+  document.getElementById('paste-panel')!.value = '';
+  initAppData();
+}
 
 const onReceiveMsg = (msg:Msg) => {
   if (data.sender === "A" && msg.sender === "B") {
@@ -105,25 +132,57 @@ const onReceiveMsg = (msg:Msg) => {
       console.log("A received bpubkey from B: ", data.bpubkey);
 
       sendMsg("Hello");
-      appStatus = (STATUS_CHAT);
+      startChat();
     } else {
       let plain = cryptoService.decrypt(msg.msgContent, data.aprikey);
       if (!plain) return;
 
-      arrChat.push({ sender: msg.sender, plain });
+      addToChatList({ sender: msg.sender, plain });
     }
   } else if (data.sender === "B" && msg.sender === "A") {
     let plain = cryptoService.decrypt(msg.msgContent, data.bprikey);
     if (!plain) return;
 
-    if (arrChat.length === 0) appStatus = (STATUS_CHAT);
+    if (arrChat.length === 0) {
+      document.getElementById("paste-panel")!.value = "";
+      startChat();
+    }
 
-    arrChat.push({ sender: msg.sender, plain });
+    addToChatList({ sender: msg.sender, plain });
+
   }
 };
 
+
+const startChat = () => {
+  appStatus = STATUS_CHAT;
+  hideIt("create-modal");
+  hideIt("join-modal");
+  showIt("chat-page");
+
+  document.getElementById("chat-input")!.focus();
+}
+
+const endChat = () => {
+  hideIt('chat-page');
+  let list_element = document.getElementById('chat-list');
+  list_element!.innerHTML = "";
+  initAppData();
+}
+
+const addToChatList = (chat: Chat) => {
+  if (chat.plain.trim() === "") return;
+  arrChat.push(chat);
+  let list_element = document.getElementById('chat-list');
+  var node = document.createElement("DIV");                 // Create a <li> node
+  var textnode = document.createTextNode(`${chat.sender}: ${chat.plain}`);         // Create a text node
+  node.appendChild(textnode);
+
+  list_element!.appendChild(node);
+};
+
 const sendMsg = (plain:string) => {
-  arrChat.push({ sender: data.sender, plain });
+  addToChatList({ sender: data.sender, plain });
   let pubkey = data.sender === "A" ? data.bpubkey : data.apubkey;
   let msgContent = cryptoService.encrypt(plain, pubkey);
   chatService.sendMsg(data.roomId, { sender: data.sender, msgContent });
@@ -170,19 +229,19 @@ namespace cryptoService {
 
 namespace chatService { 
   let options = {
-    protocol: "ws",
+    protocol: "wss",
     // clientId uniquely identifies client
     // choose any string you wish
     // clientId: "b0908853",
   };
-  let client = mqtt.connect("mqtts://test.mosquitto.org:8081", options);
+  let client = mqtt.connect("wss://test.mosquitto.org:8081", options);
 
   export function generateRoomId() {
     let roomId = "" + Math.round((Math.random() + 1) * 100000);
     return { roomId };
   }
 
-  export function enterRoom(roomId:string, onReceiveMsg: Function) {
+  export function enterRoom(roomId: string, onReceiveMsg: Function) {
     client.on("message", (topic:string, payload:object) => {
       let msg = JSON.parse(payload.toString());
       onReceiveMsg(msg);
@@ -190,6 +249,7 @@ namespace chatService {
 
     // MQTT topic
     client.subscribe(roomId);
+        console.log(roomId);
   }
 
   export function sendMsg(roomId:string, msg:object) {
@@ -199,6 +259,8 @@ namespace chatService {
 
   export function leaveRoom(roomId:string) {
     client.unsubscribe(roomId);
+    client = null;
+    client = mqtt.connect("mqtts://test.mosquitto.org:8081", options);
   }
 }
 

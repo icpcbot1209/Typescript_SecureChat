@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>1</title>
+    <title>Secure Chat</title>
     <link href="css/index.css" type="text/css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/2.3.1/jsencrypt.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.1.0/mqtt.min.js"></script>
@@ -33,7 +33,7 @@
       
         <div class="modal-content animate">
           <div class="imgcontainer">
-            <span onclick="hideIt('create-modal'); initAppData();" class="close"
+            <span onclick="handleCreateCancel()" class="close"
               title="Close Modal">&times;</span>
           </div>
 
@@ -54,7 +54,7 @@
       
         <div class="modal-content animate">
           <div class="imgcontainer">
-            <span onclick="hideIt('join-modal'); initAppData();" class="close" title="Close Modal">&times;</span>
+            <span onclick="handleJoinCancel()" class="close" title="Close Modal">&times;</span>
           </div>
       
           <div class="container centering">
@@ -67,45 +67,21 @@
         </div>
       </div>
       
-    
-      
-          <!-- Chat -->
-          <div id="chat" class="centering">
-            <Zoom in={true} style="transitionDelay:0ms">
-              <Card>
-                <CardContent style="position:relative">
-                  <Iconbutton style="position:absolute; top: 0; right: 0" onClick={handleClose}>
-                    <CancelIcon></CancelIcon>
-                  </Iconbutton>
-                  <div class="centering">
-                    <div style="
-                            width:400px;
-                            maxWidth:80%;
-                            height:500px;
-                            maxHeight:60%;
-                            border:8px double grey;
-                            overflow:'auto'
-                         ">
-                      {arrChat.map((chat; i) => (
-                      <div key={i}>
-                        <strong>{chat.sender}: </strong>
-                        <span>{chat.plain}</span>
-                      </div>
-                      ))}
-                    </div>
+      <div id="chat-page" class="overlaying">
+        <div style="display: flex; height: 100%; flex-direction: column;">
+          <span onclick="endChat()" class="close" title="Close">&times;</span>
           
-                    <div style="width:400px; maxWidth:80%; display:flex; marginTop:'30px;">
-                      <input style="flex: 1" ref={refInput} onKeyDown={(event)=> { if (event.keyCode === 13) send();"/>
-                      <Iconbutton type="submit" color="primary">
-                        <SendIcon onClick={(event)=>send()}></SendIcon>
-                      </Iconbutton>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Zoom>
+          <div id="chat-list" class="chat-list">
+            
           </div>
 
+          <div style="display: flex; margin: 30px;">
+            <input id="chat-input" style="flex: 1"/>
+            <button id="chat-send" class="chat-send-btn">SEND</button>
+          </div>
+        </div>
+      </div>
+      
     </div>
   </body>
 

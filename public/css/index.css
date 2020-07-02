@@ -36,6 +36,14 @@ body{
 }
 
 
+.overlaying {
+  position: fixed; top:0; left:0; width:100%; height:100%; background-color: darkslategrey; z-index: 1000; display: none;
+}
+
+.chat-list {
+  flex:1; margin:30px; border:8px double grey; background-color: white; overflow:auto;
+}
+
 
 /* Full-width input fields */
 input[type=text], input[type=password] {
@@ -62,6 +70,21 @@ button {
 button:hover {
   opacity: 0.8;
 }
+
+.chat-send-btn {
+  background-color: black;
+  color: white;
+  width: fit-content;
+  margin: 5px;
+  padding: 10px;
+  cursor: pointer;
+  font-size: medium;
+}
+
+.chat-send-btn:hover {
+  opacity: 0.8;
+}
+
 
 /* Extra styles for the cancel button */
 .cancelbtn {
@@ -156,4 +179,3 @@ span.psw {
      width: 100%;
   }
 }
-</style>

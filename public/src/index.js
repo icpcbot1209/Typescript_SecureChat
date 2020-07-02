@@ -1,4 +1,18 @@
 document.addEventListener('DOMContentLoaded', function (_event) {
+    var element = document.getElementById("chat-input");
+    element.addEventListener('keydown', function (event) {
+        if (event.keyCode === 13) {
+            var text = element.value;
+            sendMsg(text);
+            element.value = "";
+        }
+    });
+    var element2 = document.getElementById("chat-send");
+    element2.addEventListener('click', function (event) {
+        var text = element.value;
+        sendMsg(text);
+        element.value = "";
+    });
     initAppData();
 });
 var STATUS_FIRST = 0;
@@ -17,6 +31,7 @@ var data = {
 var appStatus;
 var arrChat = [];
 var initAppData = function () {
+    chatService.leaveRoom(data.roomId);
     appStatus = STATUS_FIRST;
     arrChat = [];
     data = {
@@ -28,8 +43,6 @@ var initAppData = function () {
         bprikey: "",
         strCreate: ""
     };
-    var a = 1;
-    chatService.leaveRoom(data.roomId);
 };
 var handleCreate = function () {
     var _a = cryptoService.generateKeyPair(), pubkey = _a.pubkey, prikey = _a.prikey;
@@ -56,6 +69,10 @@ var hideIt = function (id) {
 var handleCopy = function () {
     navigator.clipboard.writeText(data.strCreate);
 };
+var handleCreateCancel = function () {
+    hideIt('create-modal');
+    initAppData();
+};
 var handleJoin = function () {
     appStatus = STATUS_JOIN;
     showIt("join-modal");
@@ -79,32 +96,62 @@ var handleJoinConfirm = function () {
         msgContent: data.bpubkey
     });
 };
+var handleJoinCancel = function () {
+    hideIt('join-modal');
+    document.getElementById('paste-panel').value = '';
+    initAppData();
+};
 var onReceiveMsg = function (msg) {
     if (data.sender === "A" && msg.sender === "B") {
         if (!data.bpubkey) {
             data.bpubkey = msg.msgContent;
             console.log("A received bpubkey from B: ", data.bpubkey);
             sendMsg("Hello");
-            appStatus = (STATUS_CHAT);
+            startChat();
         }
         else {
             var plain = cryptoService.decrypt(msg.msgContent, data.aprikey);
             if (!plain)
                 return;
-            arrChat.push({ sender: msg.sender, plain: plain });
+            addToChatList({ sender: msg.sender, plain: plain });
         }
     }
     else if (data.sender === "B" && msg.sender === "A") {
         var plain = cryptoService.decrypt(msg.msgContent, data.bprikey);
         if (!plain)
             return;
-        if (arrChat.length === 0)
-            appStatus = (STATUS_CHAT);
-        arrChat.push({ sender: msg.sender, plain: plain });
+        if (arrChat.length === 0) {
+            document.getElementById("paste-panel").value = "";
+            startChat();
+        }
+        addToChatList({ sender: msg.sender, plain: plain });
     }
 };
+var startChat = function () {
+    appStatus = STATUS_CHAT;
+    hideIt("create-modal");
+    hideIt("join-modal");
+    showIt("chat-page");
+    document.getElementById("chat-input").focus();
+};
+var endChat = function () {
+    hideIt('chat-page');
+    var list_element = document.getElementById('chat-list');
+    list_element.innerHTML = "";
+    initAppData();
+};
+var addToChatList = function (chat) {
+    if (chat.plain.trim() === "")
+        return;
+    arrChat.push(chat);
+    var list_element = document.getElementById('chat-list');
+    var node = document.createElement("DIV"); // Create a <li> node
+    var textnode = document.createTextNode(chat.sender + ": " + chat.plain); // Create a text node
+    node.appendChild(textnode);
+    list_element.appendChild(node);
+};
 var sendMsg = function (plain) {
-    arrChat.push({ sender: data.sender, plain: plain });
+    addToChatList({ sender: data.sender, plain: plain });
     var pubkey = data.sender === "A" ? data.bpubkey : data.apubkey;
     var msgContent = cryptoService.encrypt(plain, pubkey);
     chatService.sendMsg(data.roomId, { sender: data.sender, msgContent: msgContent });
@@ -145,9 +192,9 @@ var cryptoService;
 var chatService;
 (function (chatService) {
     var options = {
-        protocol: "ws"
+        protocol: "wss"
     };
-    var client = mqtt.connect("mqtts://test.mosquitto.org:8081", options);
+    var client = mqtt.connect("wss://test.mosquitto.org:8081", options);
     function generateRoomId() {
         var roomId = "" + Math.round((Math.random() + 1) * 100000);
         return { roomId: roomId };
@@ -160,6 +207,7 @@ var chatService;
         });
         // MQTT topic
         client.subscribe(roomId);
+        console.log(roomId);
     }
     chatService.enterRoom = enterRoom;
     function sendMsg(roomId, msg) {
@@ -169,6 +217,8 @@ var chatService;
     chatService.sendMsg = sendMsg;
     function leaveRoom(roomId) {
         client.unsubscribe(roomId);
+        client = null;
+        client = mqtt.connect("mqtts://test.mosquitto.org:8081", options);
     }
     chatService.leaveRoom = leaveRoom;
 })(chatService || (chatService = {}));
