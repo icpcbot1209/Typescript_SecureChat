@@ -1,5 +1,5 @@
 #  Secure chat using Typescript Mqtt Jsencrypt Inliner(single html)
-[The Live Page is here.](./single.html)
+<a href="./single.html">The Live Page is here.</a>
 
 ## install
 `npm install`<br/> 
