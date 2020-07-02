@@ -145,10 +145,15 @@ var addToChatList = function (chat) {
         return;
     arrChat.push(chat);
     var list_element = document.getElementById('chat-list');
-    var node = document.createElement("DIV"); // Create a <li> node
-    var textnode = document.createTextNode(chat.sender + ": " + chat.plain); // Create a text node
-    node.appendChild(textnode);
+    var node = document.createElement("DIV");
+    var badge = document.createElement("DIV");
+    var textnode = document.createTextNode(chat.sender + ": " + chat.plain);
+    badge.appendChild(textnode);
+    node.appendChild(badge);
     list_element.appendChild(node);
+    node.className = (chat.sender === 'A') ? "chat-item-left" : "chat-item-right";
+    badge.className = (chat.sender === 'A') ? "dont-break-out badge-left" : "dont-break-out badge-right";
+    list_element.scrollTop = list_element.scrollHeight;
 };
 var sendMsg = function (plain) {
     addToChatList({ sender: data.sender, plain: plain });
