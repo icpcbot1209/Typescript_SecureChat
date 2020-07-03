@@ -1,6 +1,17 @@
 document.addEventListener('DOMContentLoaded', (_event) => {
+  setEventListeners();
+  initAppData();
+});
+
+const showAlert = (txt: string, t:number) => {
+  let eleAlert = document.getElementById('alert');
+  eleAlert!.innerHTML = txt;
+  setTimeout(() => { eleAlert!.innerHTML = ""; }, t);
+}
+
+const setEventListeners = () => { 
   let element = document.getElementById("chat-input");
-  element!.addEventListener('keydown', (event) => { 
+  element!.addEventListener('keydown', (event) => {
     if (event.keyCode === 13) {
       let text = element!.value;
       sendMsg(text);
@@ -9,19 +20,89 @@ document.addEventListener('DOMContentLoaded', (_event) => {
   });
 
   let element2 = document.getElementById("chat-send");
-  element2!.addEventListener('click', (event) => { 
+  element2!.addEventListener('click', (event) => {
     let text = element!.value;
     sendMsg(text);
     element!.value = "";
   });
 
-  initAppData();
-});
+  let eleMyKey = document.getElementById("offline-my-key"),
+    eleOtherKey = document.getElementById('offline-other-key'),
+    eleMyPlain = document.getElementById('offline-my-plain'),
+    eleMyEncrypted = document.getElementById('offline-my-encrypted'),
+    eleOtherPlain = document.getElementById('offline-other-plain'),
+    eleOtherEncrypted = document.getElementById('offline-other-encrypted');
+
+  let eleOfflineButton = document.getElementById("offline-mode-button");
+  eleOfflineButton?.addEventListener('click', (event) => {
+    startOfflineMode();
+    let { pubkey, prikey } = cryptoService.generateKeyPair();
+    data.apubkey = pubkey;
+    data.aprikey = prikey;
+  });
+
+  let eleOfflineEndButton = document.getElementById("offline-end-button");
+  eleOfflineEndButton?.addEventListener('click', (event) => {
+    endOfflineMode();
+    eleOtherKey!.getElementsByTagName('span')[0]!.innerHTML = "&#10068;";
+    eleMyPlain!.getElementsByTagName('div')[0]!.innerHTML = "";
+    eleMyEncrypted!.getElementsByTagName('div')[0]!.innerHTML = "";
+    eleOtherPlain!.getElementsByTagName('div')[0]!.innerHTML = "";
+    eleOtherEncrypted!.getElementsByTagName('div')[0]!.innerHTML = "";
+  });
+
+  eleMyKey!.addEventListener('click', (event) => { 
+    navigator.clipboard.writeText(data.apubkey);
+    showAlert("copied my key", 1000);
+  });
+  eleOtherKey!.addEventListener('click', (event) => {
+    let txt = prompt("Public key from other.", data.bpubkey);
+    if (txt && txt !== "") {
+      data.bpubkey = txt;
+      eleOtherKey!.getElementsByTagName('span')[0]!.innerHTML = "&#10004;";
+    }
+  });
+  eleMyPlain!.addEventListener('click', (event) => {
+    if (data.bpubkey === "") {
+      alert("Other's key required.");
+      return;
+    }
+
+    let txtBefore = eleMyPlain!.getElementsByTagName('div')[0]!.innerHTML;
+    let txt = prompt("My Plain text", txtBefore);
+    if (txt && txt !== "") {      
+      eleMyPlain!.getElementsByTagName('div')[0]!.innerHTML = txt;
+      let encrypted = cryptoService.encrypt(txt, data.bpubkey);
+      eleMyEncrypted!.getElementsByTagName('div')[0]!.innerHTML = encrypted;
+    }
+  });
+  eleMyEncrypted!.addEventListener('click', (event) => {
+    let encrypted = eleMyEncrypted!.getElementsByTagName('div')[0]!.innerHTML;
+    navigator.clipboard.writeText(encrypted);
+    showAlert("copied my encrypted", 1000);
+  });
+  eleOtherPlain!.addEventListener('click', (event) => {
+    let plain = eleOtherPlain!.getElementsByTagName('div')[0]!.innerHTML;
+    navigator.clipboard.writeText(plain);
+    showAlert("copied other's plain", 1000);
+  });
+  eleOtherEncrypted!.addEventListener('click', (event) => {
+    let txtBefore = eleOtherEncrypted!.getElementsByTagName('div')[0]!.innerHTML;
+    let txt = prompt("Other's encrypted text", txtBefore);
+    if (txt && txt !== "") {
+      eleOtherEncrypted!.getElementsByTagName('div')[0]!.innerHTML = txt;
+      let plain = cryptoService.decrypt(txt, data.aprikey);
+      if (plain === false) alert("Invalid");
+      else eleOtherPlain!.getElementsByTagName('div')[0]!.innerHTML = plain;
+    }
+  });
+};
 
 const STATUS_FIRST = 0;
 const STATUS_CREATE = 1;
 const STATUS_JOIN = 2;
 const STATUS_CHAT = 3;
+const STATUS_OFFLINE = 4;
 
 let data = {
   sender: "A",
@@ -50,7 +131,33 @@ const initAppData = () => {
     bprikey: "",
     strCreate: "",
   };
+};
 
+const openSettingModal = () => { 
+  showIt('setting-modal');
+  document.getElementById('setting-serverurl')!.value = chatService.urlServer;
+};
+
+const closeSettingModal = () => { 
+  hideIt('setting-modal');
+};
+
+const handleChangeServerURL = () => { 
+  let title = document.getElementById('setting-serverurl')!.value;
+  if (title === null || title === "") {
+  } else {
+    chatService.changeUrlServer(title);
+  }
+}
+
+const startOfflineMode = () => { 
+  appStatus = STATUS_OFFLINE;
+  showIt("offline-page");
+};
+
+const endOfflineMode = () => { 
+  initAppData();
+  hideIt("offline-page");
 };
 
 const handleCreate = () => {
@@ -167,6 +274,9 @@ const endChat = () => {
   hideIt('chat-page');
   let list_element = document.getElementById('chat-list');
   list_element!.innerHTML = "";
+  let input_element = document.getElementById('chat-input');
+  input_element!.value = "";
+
   initAppData();
 }
 
@@ -240,7 +350,13 @@ namespace chatService {
     // choose any string you wish
     // clientId: "b0908853",
   };
-  let client = mqtt.connect("wss://test.mosquitto.org:8081", options);
+  export let urlServer = "wss://test.mosquitto.org:8081";
+  let client = mqtt.connect(urlServer, options);
+
+  export function changeUrlServer(url: string){
+    urlServer = url;
+    client = mqtt.connect(urlServer, options);
+  }
 
   export function generateRoomId() {
     let roomId = "" + Math.round((Math.random() + 1) * 100000);

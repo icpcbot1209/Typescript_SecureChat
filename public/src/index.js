@@ -1,4 +1,13 @@
 document.addEventListener('DOMContentLoaded', function (_event) {
+    setEventListeners();
+    initAppData();
+});
+var showAlert = function (txt, t) {
+    var eleAlert = document.getElementById('alert');
+    eleAlert.innerHTML = txt;
+    setTimeout(function () { eleAlert.innerHTML = ""; }, t);
+};
+var setEventListeners = function () {
     var element = document.getElementById("chat-input");
     element.addEventListener('keydown', function (event) {
         if (event.keyCode === 13) {
@@ -13,12 +22,75 @@ document.addEventListener('DOMContentLoaded', function (_event) {
         sendMsg(text);
         element.value = "";
     });
-    initAppData();
-});
+    var eleMyKey = document.getElementById("offline-my-key"), eleOtherKey = document.getElementById('offline-other-key'), eleMyPlain = document.getElementById('offline-my-plain'), eleMyEncrypted = document.getElementById('offline-my-encrypted'), eleOtherPlain = document.getElementById('offline-other-plain'), eleOtherEncrypted = document.getElementById('offline-other-encrypted');
+    var eleOfflineButton = document.getElementById("offline-mode-button");
+    eleOfflineButton === null || eleOfflineButton === void 0 ? void 0 : eleOfflineButton.addEventListener('click', function (event) {
+        startOfflineMode();
+        var _a = cryptoService.generateKeyPair(), pubkey = _a.pubkey, prikey = _a.prikey;
+        data.apubkey = pubkey;
+        data.aprikey = prikey;
+    });
+    var eleOfflineEndButton = document.getElementById("offline-end-button");
+    eleOfflineEndButton === null || eleOfflineEndButton === void 0 ? void 0 : eleOfflineEndButton.addEventListener('click', function (event) {
+        endOfflineMode();
+        eleOtherKey.getElementsByTagName('span')[0].innerHTML = "&#10068;";
+        eleMyPlain.getElementsByTagName('div')[0].innerHTML = "";
+        eleMyEncrypted.getElementsByTagName('div')[0].innerHTML = "";
+        eleOtherPlain.getElementsByTagName('div')[0].innerHTML = "";
+        eleOtherEncrypted.getElementsByTagName('div')[0].innerHTML = "";
+    });
+    eleMyKey.addEventListener('click', function (event) {
+        navigator.clipboard.writeText(data.apubkey);
+        showAlert("copied my key", 1000);
+    });
+    eleOtherKey.addEventListener('click', function (event) {
+        var txt = prompt("Public key from other.", data.bpubkey);
+        if (txt && txt !== "") {
+            data.bpubkey = txt;
+            eleOtherKey.getElementsByTagName('span')[0].innerHTML = "&#10004;";
+        }
+    });
+    eleMyPlain.addEventListener('click', function (event) {
+        if (data.bpubkey === "") {
+            alert("Other's key required.");
+            return;
+        }
+        var txtBefore = eleMyPlain.getElementsByTagName('div')[0].innerHTML;
+        var txt = prompt("My Plain text", txtBefore);
+        if (txt && txt !== "") {
+            eleMyPlain.getElementsByTagName('div')[0].innerHTML = txt;
+            var encrypted = cryptoService.encrypt(txt, data.bpubkey);
+            eleMyEncrypted.getElementsByTagName('div')[0].innerHTML = encrypted;
+        }
+    });
+    eleMyEncrypted.addEventListener('click', function (event) {
+        var encrypted = eleMyEncrypted.getElementsByTagName('div')[0].innerHTML;
+        navigator.clipboard.writeText(encrypted);
+        showAlert("copied my encrypted", 1000);
+    });
+    eleOtherPlain.addEventListener('click', function (event) {
+        var plain = eleOtherPlain.getElementsByTagName('div')[0].innerHTML;
+        navigator.clipboard.writeText(plain);
+        showAlert("copied other's plain", 1000);
+    });
+    eleOtherEncrypted.addEventListener('click', function (event) {
+        var txtBefore = eleOtherEncrypted.getElementsByTagName('div')[0].innerHTML;
+        var txt = prompt("Other's encrypted text", txtBefore);
+        if (txt && txt !== "") {
+            eleOtherEncrypted.getElementsByTagName('div')[0].innerHTML = txt;
+            var plain = cryptoService.decrypt(txt, data.aprikey);
+            if (plain === false)
+                alert("Invalid");
+            else
+                eleOtherPlain.getElementsByTagName('div')[0].innerHTML = plain;
+        }
+    });
+};
 var STATUS_FIRST = 0;
 var STATUS_CREATE = 1;
 var STATUS_JOIN = 2;
 var STATUS_CHAT = 3;
+var STATUS_OFFLINE = 4;
 var data = {
     sender: "A",
     roomId: "",
@@ -43,6 +115,29 @@ var initAppData = function () {
         bprikey: "",
         strCreate: ""
     };
+};
+var openSettingModal = function () {
+    showIt('setting-modal');
+    document.getElementById('setting-serverurl').value = chatService.urlServer;
+};
+var closeSettingModal = function () {
+    hideIt('setting-modal');
+};
+var handleChangeServerURL = function () {
+    var title = document.getElementById('setting-serverurl').value;
+    if (title === null || title === "") {
+    }
+    else {
+        chatService.changeUrlServer(title);
+    }
+};
+var startOfflineMode = function () {
+    appStatus = STATUS_OFFLINE;
+    showIt("offline-page");
+};
+var endOfflineMode = function () {
+    initAppData();
+    hideIt("offline-page");
 };
 var handleCreate = function () {
     var _a = cryptoService.generateKeyPair(), pubkey = _a.pubkey, prikey = _a.prikey;
@@ -138,6 +233,8 @@ var endChat = function () {
     hideIt('chat-page');
     var list_element = document.getElementById('chat-list');
     list_element.innerHTML = "";
+    var input_element = document.getElementById('chat-input');
+    input_element.value = "";
     initAppData();
 };
 var addToChatList = function (chat) {
@@ -199,7 +296,13 @@ var chatService;
     var options = {
         protocol: "wss"
     };
-    var client = mqtt.connect("wss://test.mosquitto.org:8081", options);
+    chatService.urlServer = "wss://test.mosquitto.org:8081";
+    var client = mqtt.connect(chatService.urlServer, options);
+    function changeUrlServer(url) {
+        chatService.urlServer = url;
+        client = mqtt.connect(chatService.urlServer, options);
+    }
+    chatService.changeUrlServer = changeUrlServer;
     function generateRoomId() {
         var roomId = "" + Math.round((Math.random() + 1) * 100000);
         return { roomId: roomId };
