@@ -104,6 +104,10 @@ var appStatus;
 var arrChat = [];
 var initAppData = function () {
     chatService.leaveRoom(data.roomId);
+    chatService.doConnect("wss://test.mosquitto.org:8081", function () {
+    }, function () {
+        showAlert("Connection Error", 3000);
+    });
     appStatus = STATUS_FIRST;
     arrChat = [];
     data = {
@@ -128,7 +132,10 @@ var handleChangeServerURL = function () {
     if (title === null || title === "") {
     }
     else {
-        chatService.changeUrlServer(title);
+        chatService.doConnect(title, function () { }, function () {
+            showAlert("Connection Error", 3000);
+        });
+        hideIt('setting-modal');
     }
 };
 var startOfflineMode = function () {
@@ -293,16 +300,28 @@ var cryptoService;
 })(cryptoService || (cryptoService = {}));
 var chatService;
 (function (chatService) {
+    chatService.urlServer = "wss://test.mosquitto.org:8081";
+    var client = mqtt.connect(chatService.urlServer, options);
     var options = {
         protocol: "wss"
     };
-    chatService.urlServer = "wss://test.mosquitto.org:8081";
-    var client = mqtt.connect(chatService.urlServer, options);
-    function changeUrlServer(url) {
+    function doConnect(url, callback, errHandler) {
         chatService.urlServer = url;
         client = mqtt.connect(chatService.urlServer, options);
+        client.on("connect", function () {
+            console.log("connected");
+            callback();
+        });
+        client.on("error", function (err) {
+            console.log('err');
+            errHandler();
+        });
+        client.on('offline', function () {
+            console.log('Offline');
+            errHandler();
+        });
     }
-    chatService.changeUrlServer = changeUrlServer;
+    chatService.doConnect = doConnect;
     function generateRoomId() {
         var roomId = "" + Math.round((Math.random() + 1) * 100000);
         return { roomId: roomId };
@@ -325,8 +344,7 @@ var chatService;
     chatService.sendMsg = sendMsg;
     function leaveRoom(roomId) {
         client.unsubscribe(roomId);
-        client = null;
-        client = mqtt.connect("mqtts://test.mosquitto.org:8081", options);
+        client.end();
     }
     chatService.leaveRoom = leaveRoom;
 })(chatService || (chatService = {}));

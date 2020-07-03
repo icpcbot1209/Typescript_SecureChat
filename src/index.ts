@@ -119,6 +119,11 @@ var arrChat = [];
 
 const initAppData = () => {
   chatService.leaveRoom(data.roomId);
+  chatService.doConnect("wss://test.mosquitto.org:8081", () => {
+
+  }, () => {
+    showAlert("Connection Error", 3000);
+  });
 
   appStatus = STATUS_FIRST;
   arrChat = [];
@@ -146,7 +151,10 @@ const handleChangeServerURL = () => {
   let title = document.getElementById('setting-serverurl')!.value;
   if (title === null || title === "") {
   } else {
-    chatService.changeUrlServer(title);
+    chatService.doConnect(title, () => { }, () => {
+      showAlert("Connection Error", 3000);
+    });
+    hideIt('setting-modal');
   }
 }
 
@@ -344,18 +352,33 @@ namespace cryptoService {
 
 
 namespace chatService { 
+
+  export let urlServer = "wss://test.mosquitto.org:8081";
+  let client = mqtt.connect(urlServer, options);
   let options = {
     protocol: "wss",
     // clientId uniquely identifies client
     // choose any string you wish
     // clientId: "b0908853",
   };
-  export let urlServer = "wss://test.mosquitto.org:8081";
-  let client = mqtt.connect(urlServer, options);
 
-  export function changeUrlServer(url: string){
+  export function doConnect(url: string, callback: Function, errHandler: Function){
     urlServer = url;
+
     client = mqtt.connect(urlServer, options);
+    client.on("connect", function () {
+      console.log("connected");
+      callback();
+    });
+
+    client.on("error", function (err: any) {
+      console.log('err');
+      errHandler();
+    });
+    client.on('offline', function () {
+      console.log('Offline');
+      errHandler();
+    });
   }
 
   export function generateRoomId() {
@@ -381,8 +404,7 @@ namespace chatService {
 
   export function leaveRoom(roomId:string) {
     client.unsubscribe(roomId);
-    client = null;
-    client = mqtt.connect("mqtts://test.mosquitto.org:8081", options);
+    client.end();
   }
 }
 
