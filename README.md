@@ -52,4 +52,5 @@ Typescript External Modules are not supported. When they are converted, they sho
 Because of this, it can't be opened using browser directly by clicking file, so please avoid using external module feature of typescript.
 
 
-
+**Screen shot**
+![](/readme/securechat.gif)

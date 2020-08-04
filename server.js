@@ -14,15 +14,15 @@ app.use(express.static('public'));
 app.listen(port, () => {
   console.log(`listening on port ${port}!`);
 
-  new Inliner(`http://localhost:${port}`, function (error, html) {
-    // compressed and inlined HTML page
-    let filename = 'single' + Date.now() + ".html";
+  // new Inliner(`http://localhost:${port}`, function (error, html) {
+  //   // compressed and inlined HTML page
+  //   let filename = 'single' + Date.now() + ".html";
 
-    fs.appendFile(filename, html, function (err) {
-      if (err) throw err;
-      console.log(`Combiled result Saved as ${filename}`);
-    });
-  });
+  //   fs.appendFile(filename, html, function (err) {
+  //     if (err) throw err;
+  //     console.log(`Combiled result Saved as ${filename}`);
+  //   });
+  // });
 
 });
 
